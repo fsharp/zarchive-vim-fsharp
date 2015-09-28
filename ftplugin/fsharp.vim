@@ -1,6 +1,6 @@
 " Vim filetype plugin
 " Language:     F#
-" Last Change:  Thu 23 Oct 2014 08:39:53 PM CEST
+" Last Change:  Tue 09 Sep 2015 
 " Maintainer:   Gregor Uhlenheuer <kongo2002@googlemail.com>
 
 if exists('b:did_ftplugin')
@@ -14,9 +14,43 @@ if !exists('g:fsharp_only_check_errors_on_write')
 endif
 if !exists('g:fsharp_xbuild_path')
     let g:fsharp_xbuild_path = "xbuild"
+    "under Windows, scan the system registry for MSBuild.exe
+    if has('win32') && has('python')
+       python << EOF
+import vim
+import os.path
+from distutils.version import StrictVersion
+try:
+    from _winreg import OpenKey, QueryInfoKey, EnumKey, QueryValueEx
+    from _winreg import HKEY_LOCAL_MACHINE
+except ImportError:
+    from winreg import OpenKey, QueryInfoKey, EnumKey, QueryValueEx
+    from winreg import HKEY_LOCAL_MACHINE
+
+with OpenKey(HKEY_LOCAL_MACHINE,
+            "SOFTWARE\\Microsoft\\MSBuild\\ToolsVersions") as key:
+    versions = []
+    n_versions = QueryInfoKey(key)[0]
+    for version_index in range(n_versions):
+        toolsversion = EnumKey(key, version_index)
+        with OpenKey(key, toolsversion) as version_key:
+            path = QueryValueEx(version_key, "MSBuildToolsPath")[0]
+            try:
+                version = QueryValueEx(version_key, "MSBuildRuntimeVersion")[0]
+            except:
+                version = toolsversion
+            versions.append((version, toolsversion, path))
+
+    if len(versions) > 0:
+        key_lambda = lambda v: (StrictVersion(v[0]), StrictVersion(v[1]))
+        path = max(versions, key=key_lambda)[2] + "MSBuild.exe"
+        if os.path.exists(path):
+            vim.command("let g:fsharp_xbuild_path = shellescape('%s')" % path)
+EOF
+    endif
 endif
 if !exists('g:fsharp_completion_helptext')
-    let g:fsharp_completion_helptext = 1 
+    let g:fsharp_completion_helptext = 1
 endif
 
 let s:cpo_save = &cpo

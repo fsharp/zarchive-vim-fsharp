@@ -1,6 +1,6 @@
 " Vim autoload functions
 " Language:     F#
-" Last Change:  Mon 20 Oct 2014 08:21:43 PM CEST
+" Last Change:  Tue 09 Sep 2015 
 " Maintainer:   Gregor Uhlenheuer <kongo2002@googlemail.com>
 
 if exists('g:loaded_autoload_fsharpbinding_python')
@@ -67,9 +67,9 @@ function! fsharpbinding#python#BuildProject(...)
     try
         execute 'wa'
         if a:0 > 0
-            execute '!xbuild ' . fnameescape(a:1)
+            execute '!' . g:fsharp_xbuild_path . ' ' . fnameescape(a:1)
         elseif exists('b:proj_file')
-            execute '!xbuild ' . fnameescape(b:proj_file) "/verbosity:quiet /nologo"
+            execute '!' . g:fsharp_xbuild_path . ' ' . fnameescape(b:proj_file) "/verbosity:quiet /nologo"
             call fsharpbinding#python#ParseProject()
             let b:fsharp_buffer_changed = 1
         else
