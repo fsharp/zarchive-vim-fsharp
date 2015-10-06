@@ -1,6 +1,6 @@
 " Vim filetype plugin
 " Language:     F#
-" Last Change:  Thu 23 Oct 2014 08:39:53 PM CEST
+" Last Change:  Wen 07 Oct 2015
 " Maintainer:   Gregor Uhlenheuer <kongo2002@googlemail.com>
 
 if exists('b:did_ftplugin')
@@ -13,7 +13,7 @@ if !exists('g:fsharp_only_check_errors_on_write')
     let g:fsharp_only_check_errors_on_write = 0
 endif
 if !exists('g:fsharp_xbuild_path')
-    let g:fsharp_xbuild_path = "xbuild"
+    let g:fsharp_xbuild_path = {BUILD_EXECUTABLE}
 endif
 if !exists('g:fsharp_completion_helptext')
     let g:fsharp_completion_helptext = 1 
