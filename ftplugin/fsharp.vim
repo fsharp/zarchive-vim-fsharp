@@ -13,7 +13,7 @@ if !exists('g:fsharp_only_check_errors_on_write')
     let g:fsharp_only_check_errors_on_write = 0
 endif
 if !exists('g:fsharp_xbuild_path')
-    let g:fsharp_xbuild_path = {BUILD_EXECUTABLE}
+    let g:fsharp_xbuild_path = 'xbuild'
 endif
 if !exists('g:fsharp_completion_helptext')
     let g:fsharp_completion_helptext = 1

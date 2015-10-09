@@ -10,7 +10,7 @@ let homeVimPath =
     if Environment.OSVersion.Platform = PlatformID.Unix || Environment.OSVersion.Platform = PlatformID.MacOSX then
         Environment.GetEnvironmentVariable("HOME") @@ ".vim"
     else Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%") @@ "vimfiles"
-        
+
 let vimInstallDir = homeVimPath @@ "bundle/fsharpbinding-vim"
 
 let vimBinDir = __SOURCE_DIRECTORY__ @@ "ftplugin/bin"
@@ -25,37 +25,40 @@ let fsharpVim = ftpluginDir @@ "fsharp.vim"
 let acArchive = "fsautocomplete.zip"
 let acVersion = "0.23.0"
 
-let buildExecutable = 
+let buildExecPath =
+  lazy
+    if isMono then "xbuild" else
+      let keyString = "SOFTWARE\\Microsoft\\MSBuild\\ToolsVersions"
+
+      let mostRecentVersionKey =
+        match RegistryHelper.getRegistryKey HKEYLocalMachine keyString false with
+        | null -> failwith "MSBuild could not be found in the System Registry (no ToolsVersion installed)."
+        | key ->
+            match key.GetSubKeyNames () with
+            | [||] -> failwith "MSBuild could not be found in the System Registry (no ToolsVersion installed)."
+            | versions -> versions
+                          |> Array.maxBy System.Version
+                          |> sprintf "%s\\%s" keyString
+
+      if valueExistsForKey HKEYLocalMachine mostRecentVersionKey "MSBuildToolsPath"
+      then
+        let executable =
+          RegistryHelper.getRegistryValue HKEYLocalMachine mostRecentVersionKey "MSBuildToolsPath"
+            @@ "MSbuild.exe" |> normalizePath
+
+        if fileExists executable then executable
+        else failwithf "File not found: %s" executable
+      else failwithf "Registry key 'MSBuildToolsPath' missing in: HKEY_LOCAL_MACHINE\\%s." mostRecentVersionKey
+
+let buildExecutable =
+  // In Windows, 'shellescape' is needed to escape the path for vim
+  let pathEscape = if isMono then sprintf "'%s'" else sprintf "shellescape('%s')"
+
   // The build executable can be set as an environment variable.
   // For example: ./install.cmd -ev build "path/to/msbuild"
-  if isMono then getBuildParamOrDefault "build" "xbuild"
-  else
-    // In Windows, 'shellescape' is needed to escape the path for vim
-    sprintf "shellescape('%s')" <| getBuildParamOrDefault "build"
-      (let key = "SOFTWARE\\Microsoft\\MSBuild\\ToolsVersions" 
- 
-       let toolsVersions = 
-         match RegistryHelper.getRegistryKey HKEYLocalMachine key false with
-         | null -> failwith "MSBuild could not be found in the System Registry (no ToolsVersion installed)."
-         | key -> key
- 
-       let mostRecentVersionKey =
-         match toolsVersions.GetSubKeyNames () with
-         | [||] -> failwith "MSBuild could not be found in the System Registry (no ToolsVersion installed)."
-         | versions -> versions 
-                       |> Array.maxBy System.Version
-                       |> sprintf "%s\\%s" key
- 
-       if valueExistsForKey HKEYLocalMachine mostRecentVersionKey "MSBuildToolsPath"
-       then 
-         let path =  
-           RegistryHelper.getRegistryValue HKEYLocalMachine mostRecentVersionKey "MSBuildToolsPath" 
-         let executable = normalizePath (path @@ "MSBuild.exe")
-         if fileExists executable then executable
-         else failwithf "File not found: %s" executable
-       else 
-         sprintf "HKEY_LOCAL_MACHINE\\%s" mostRecentVersionKey
-         |> failwithf "Registry key 'MSBuildToolsPath' missing in: %s.")
+  pathEscape (if hasBuildParam "build" then getBuildParam "build" else buildExecPath.Value)
+
+let buildExecutableTag = "{BUILD_EXECUTABLE}"
 
 Target "FSharp.AutoComplete" (fun _ ->
   CreateDir vimBinDir
@@ -66,9 +69,13 @@ Target "FSharp.AutoComplete" (fun _ ->
   tracefn "Unzipping"
   Unzip vimBinDir (vimBinDir @@ acArchive))
 
-Target "AddPath" (fun _ ->
+Target "AddMSBuildPath" (fun _ ->
     CopyFile fsharpVim (fsharpVim + ".template")
-    processTemplates ["{BUILD_EXECUTABLE}", buildExecutable] [fsharpVim])
+    processTemplates [buildExecutableTag, buildExecutable] [fsharpVim])
+
+Target "CleanMSBuildPath" (fun _ ->
+    CopyFile fsharpVim (fsharpVim + ".template")
+    processTemplates [buildExecutableTag, "'xbuild'"] [fsharpVim])
 
 Target "Install" (fun _ ->
     DeleteDir vimInstallDir
@@ -84,8 +91,11 @@ Target "Clean" (fun _ ->
 
 Target "All" id
 
-"FSharp.AutoComplete"
-    ==> "AddPath"
+"CleanMSBuildPath"
+    ==> "Clean"
+
+"AddMSBuildPath"
+    ==> "FSharp.AutoComplete"
     ==> "Install"
     ==> "All"
 
