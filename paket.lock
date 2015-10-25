@@ -5,4 +5,4 @@ NUGET
 HTTP
   remote: https://github.com
   specs:
-    fsautocomplete.zip (/fsharp/FsAutoComplete/releases/download/0.23.0/fsautocomplete.zip)
+    fsautocomplete.zip (/fsharp/FsAutoComplete/releases/download/0.26.1/fsautocomplete.zip)

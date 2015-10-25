@@ -63,10 +63,10 @@ if '.fs' == ext or '.fsi' == ext:
 G.fsac.parse(b.name, True, b)
 EOF
 
-    nnoremap <buffer> <leader>t :call fsharpbinding#python#TypeCheck()<cr>
-    nnoremap <buffer> <leader>d :call fsharpbinding#python#GotoDecl()<cr>
-    nnoremap <buffer> <leader>s :call fsharpbinding#python#GoBackFromDecl()<cr>
-    nnoremap <buffer> <leader>e :call fsharpbinding#python#FsiInput()<cr>
+    nnoremap <buffer> <silent> <leader>t :call fsharpbinding#python#TypeCheck()<cr>
+    nnoremap <buffer> <silent> <leader>d :call fsharpbinding#python#GotoDecl()<cr>
+    nnoremap <buffer> <silent> <leader>s :call fsharpbinding#python#GoBackFromDecl()<cr>
+    nnoremap <buffer> <silent> <leader>e :call fsharpbinding#python#FsiInput()<cr>
 
     com! -buffer FSharpLogFile call fsharpbinding#python#LoadLogFile()
     com! -buffer FSharpToggleHelptext call fsharpbinding#python#ToggleHelptext()
