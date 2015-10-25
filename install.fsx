@@ -10,27 +10,20 @@ let homeVimPath =
     if Environment.OSVersion.Platform = PlatformID.Unix || Environment.OSVersion.Platform = PlatformID.MacOSX then
         Environment.GetEnvironmentVariable("HOME") @@ ".vim"
     else Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%") @@ "vimfiles"
-        
+
 let vimInstallDir = homeVimPath @@ "bundle/fsharpbinding-vim"
 
-let vimBinDir = __SOURCE_DIRECTORY__ @@ "ftplugin/bin"
 let ftpluginDir = __SOURCE_DIRECTORY__ @@ "ftplugin"
 let autoloadDir = __SOURCE_DIRECTORY__ @@ "autoload"
 let syntaxDir = __SOURCE_DIRECTORY__ @@ "syntax"
 let ftdetectDir = __SOURCE_DIRECTORY__ @@ "ftdetect"
 let syntaxCheckersDir = __SOURCE_DIRECTORY__ @@ "syntax_checkers"
 
-let acArchive = "fsautocomplete.zip"
-let acVersion = "0.23.0"
-
-Target "FSharp.AutoComplete" (fun _ ->
-  CreateDir vimBinDir
-  use client = new WebClient()
-  tracefn "Downloading version %s of FSharp.AutoComplete" acVersion
-  client.DownloadFile(sprintf "https://github.com/fsharp/FSharp.AutoComplete/releases/download/%s/%s" acVersion acArchive, vimBinDir @@ acArchive)
-  tracefn "Download complete"
-  tracefn "Unzipping"
-  Unzip vimBinDir (vimBinDir @@ acArchive))
+let vimACDir = vimInstallDir @@ "ftplugin" @@ "bin"
+// FSAutoComplete files downloaded with Paket
+let ACFiles = !! "paket-files/github.com/**/*.*"
+              -- "*.zip"
+              -- "paket.version"
 
 Target "Install" (fun _ ->
     DeleteDir vimInstallDir
@@ -39,15 +32,16 @@ Target "Install" (fun _ ->
     CopyDir (vimInstallDir @@ "autoload") autoloadDir (fun _ -> true)
     CopyDir (vimInstallDir @@ "syntax") syntaxDir (fun _ -> true)
     CopyDir (vimInstallDir @@ "syntax_checkers") syntaxCheckersDir (fun _ -> true)
-    CopyDir (vimInstallDir @@ "ftdetect") ftdetectDir (fun _ -> true))
+    CopyDir (vimInstallDir @@ "ftdetect") ftdetectDir (fun _ -> true)
+    CreateDir vimACDir
+    Copy vimACDir ACFiles)
 
 Target "Clean" (fun _ ->
-    CleanDirs [ vimBinDir; vimInstallDir ])
+    CleanDirs [ vimInstallDir ])
 
 Target "All" id
 
-"FSharp.AutoComplete"
-    ==> "Install"
+"Install"
     ==> "All"
 
 RunTargetOrDefault "All"
