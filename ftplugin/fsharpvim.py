@@ -159,7 +159,7 @@ class FSAutoComplete:
             return []
 
         if base != '':
-            msg = filter(lambda(line):
+            msg = filter(lambda(line): \
                     line['Name'].lower().find(base.lower()) != -1, msg)
         msg.sort(key=lambda x: x['Name'].startswith(base), reverse=True)
 
@@ -196,9 +196,9 @@ class FSAutoComplete:
     def tooltip(self, fn, line, column):
         msg = self._tooltip.send('tooltip "%s" %d %d 500\n' % (fn, line, column))
         if msg != None:
-            return str(msg)
+            return msg
         else:
-            return ""
+            return []
 
     def helptext(self, candidate):
         msg = self._helptext.send('helptext %s\n' % candidate)

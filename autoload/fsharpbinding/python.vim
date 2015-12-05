@@ -128,15 +128,14 @@ function! fsharpbinding#python#TypeCheck()
 b = vim.current.buffer
 G.fsac.parse(b.name, True, b)
 row, col = vim.current.window.cursor
-res = G.fsac.tooltip(b.name, row, col + 1)
-lines = res.splitlines()
-first = ""
-if len(lines):
-    first = lines[0]
-if first.startswith('Multiple') or first.startswith('type'):
-    vim.command('echo "%s"' % res)
-else:
-    vim.command('echo "%s"' % first)
+for n, line in enumerate(G.fsac.tooltip(b.name, row, col + 1)):
+    if n > 0:
+        vim.command('echo "\n"')
+    for item in line:
+        for l in item['Signature'].splitlines():
+            if l.strip() == "":
+                break
+            vim.command('echo "%s"' % l)
 EOF
     let b:fsharp_buffer_changed = 0
 endfunction

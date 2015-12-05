@@ -1,4 +1,8 @@
 NUGET
   remote: https://nuget.org/api/v2
   specs:
-    FAKE (3.33.0)
+    FAKE (4.7.2)
+HTTP
+  remote: https://github.com
+  specs:
+    fsautocomplete.zip (/fsharp/FsAutoComplete/releases/download/0.26.1/fsautocomplete.zip)

@@ -4,3 +4,5 @@
 paket.exe
 ftplugin/bin/
 packages/
+paket-files/
+.fake/
