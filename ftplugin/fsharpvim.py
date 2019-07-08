@@ -66,7 +66,11 @@ class FSAutoComplete:
         else:
             self.logfile = None
 
-        command = ['mono', dir + '/bin/fsautocomplete.exe']
+        fsautocomplete = dir + '/bin/fsautocomplete.exe'
+        if not path.exists(fsautocomplete):
+            msg = 'fsautocomplete.exe is not found: Did you build it with "make fsautocomplete"?'
+            raise FileNotFoundError(msg)
+        command = ['mono', fsautocomplete]
         opts = { 'stdin': PIPE, 'stdout': PIPE, 'stderr': PIPE, 'universal_newlines': True }
         hidewin.addopt(opts)
         try:
