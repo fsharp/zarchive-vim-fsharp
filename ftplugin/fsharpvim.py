@@ -162,7 +162,10 @@ class FSAutoComplete:
             self.logfile.close()
 
     def get_paths(self):
-        return self._getpaths.send("compilerlocation\n")
+        paths = self._getpaths.send("compilerlocation\n")
+        if paths is None:
+            return {}
+        return paths
 
     def complete(self, fn, line, column, base):
         self.__log('complete: base = %s\n' % base)
