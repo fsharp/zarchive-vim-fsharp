@@ -18,7 +18,10 @@ class FSharpInteractive:
         #self.logfiledir = tempfile.gettempdir() + "/log.txt"
         #self.logfile = open(self.logfiledir, "w")
         id = 'vim-' + str(uuid.uuid4())
-        command = [fsi_path, '--fsi-server:%s' % id, '--nologo']
+        if " " in fsi_path.strip():
+            command = fsi_path.split() + ['--fsi-server:%s' % id, '--nologo']
+        else:
+            command = [fsi_path, '--fsi-server:%s' % id, '--nologo']
         opts = { 'stdin': PIPE, 'stdout': PIPE, 'stderr': PIPE, 'shell': False, 'universal_newlines': True }
         hidewin.addopt(opts)
 
